@@ -2,9 +2,10 @@ use std::io::{self, Write};
 mod vec3;
 
 fn main() -> io::Result<()> {
-    let v = vec3::Vec3::new(0.0,1.0,0.0);
+    let mut v = vec3::Vec3::new(0.0,1.0,0.0);
     println!("{}", v[1]);
-
+    v *= 2.0;
+    println!("{}", v[1]);
     // draw ppm image
     // const IMAGE_WIDTH:i32 = 256;
     // const IMAGE_HEIGHT:i32 = 256;
