@@ -75,17 +75,13 @@ impl DivAssign<f64> for Vec3 {
 }
 
 // type aliases
-type Point3 = Vec3; // 3D point
-type Color = Vec3; // RGB color
+pub type Point3 = Vec3; // 3D point
 
 // Vec3 Utility Functions
-fn vec_write(v: Vec3) -> io::Result<()> {
-    io::stdout().write_fmt(format_args!("{} {} {}", v.e[0], v.e[1], v.e[2]))?;
+fn vec_write(mut output_writer: impl Write, v: Vec3) -> io::Result<()> {
+    output_writer.write_fmt(format_args!("{} {} {}", v.e[0], v.e[1], v.e[2]))?;
     Ok(())
 }
-// inline std::ostream& operator<<(std::ostream &out, const vec3 &v) {
-//     return out << v.e[0] << ' ' << v.e[1] << ' ' << v.e[2];
-// }
 
 impl Add for Vec3 {
     type Output = Self;
