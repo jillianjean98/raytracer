@@ -1,29 +1,17 @@
 use std::io::{self, Write};
-mod color;
+mod vectors;
 
-fn main() -> io::Result<()> {
-    // let mut v = vec3::Vec3::new(0.0,1.0,0.0);
-    // println!("{}", v[1]);
-    // v *= 2.0;
-    // println!("{}", v[1]);
-    // draw ppm image
-    const IMAGE_WIDTH:i32 = 256;
-    const IMAGE_HEIGHT:i32 = 256;
+fn ray_color(/*r: vectors::ray::Ray*/) ->  () {//vectors::vec3::color::Color {
+   // let unit_direction = vectors::vec3::unit_vector(r.direction());
+   vectors::color::write_color(io::stdout(), vectors::vec3::vec3::Vec3::new(0.0,1.0,0.0));
+}
 
-    io::stdout().write_fmt(format_args!("P3\n{} {}\n255\n", IMAGE_WIDTH, IMAGE_HEIGHT))?;
+// color ray_color(const ray& r) {
+//     vec3 unit_direction = unit_vector(r.direction());
+//     auto t = 0.5*(unit_direction.y() + 1.0);
+//     return (1.0-t)*color(1.0, 1.0, 1.0) + t*color(0.5, 0.7, 1.0);
+// }
 
-    let mut j = IMAGE_HEIGHT -1;
-    while j >= 0 {
-        io::stderr().write_fmt(format_args!("\rScanlines remaining: {}", j))?;
-        io::stderr().flush()?;
-        let mut i = 0;
-        while i < IMAGE_WIDTH {
-            let mut pixel_color = color::Color::new(i as f64 / (IMAGE_WIDTH-1) as f64, j as f64 / (IMAGE_HEIGHT-1) as f64, 0.25);
-            color::write_color(io::stdout(), pixel_color)?;
-            i+=1;
-        }
-        j-=1;
-    }
-    io::stderr().write_all(b"\nDone.\n")?;
-     Ok(())
+fn main() {
+    ray_color()
 }
