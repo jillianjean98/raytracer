@@ -4,10 +4,30 @@ use vectors::vec3::color::Color as Color;
 use vectors::vec3::point3::Point3 as Point3;
 use vectors::vec3::vec3::Vec3 as Vec3;
 
+fn hit_sphere(center: Point3, radius: f64, ray: vectors::ray::Ray) -> f64 {
+    // 𝑡2𝐛⋅𝐛+2𝑡𝐛⋅(𝐀−𝐂)+(𝐀−𝐂)⋅(𝐀−𝐂)−𝑟2=0
+    let oc = ray.origin - center;
+    let a = ray.direction.length_squared();
+    let half_b = vectors::vec3::vec3::dot(oc, ray.direction);
+    let c = oc.length_squared() - radius*radius;
+    let discrim = half_b*half_b - a*c;
+    if discrim < 0.0 {
+        -1.0
+    } else {
+        (-half_b - discrim.sqrt()) / a
+    }
+}
+
 fn ray_color(r: vectors::ray::Ray) -> Color {
-   let unit_direction = vectors::vec3::vec3::unit_vector(r.direction);
-   let t = 0.5*(unit_direction.y() + 1.0);
-   (1.0-t)*Color::new(1.0,1.0,1.0) + t*Color::new(0.5, 0.7, 1.0)
+    let mut t = hit_sphere(Point3::new(0.0,0.0,-1.0), 0.5, r);
+    if t > 0.0 {
+        let n = vectors::vec3::vec3::unit_vector(r.at(t) - Vec3::new(0.0,0.0,-1.0));
+        0.5*Color::new(1.0, 1.0, n.z() + 1.0)
+    } else {
+        let unit_direction = vectors::vec3::vec3::unit_vector(r.direction);
+        t = 0.5*(unit_direction.y() + 1.0);
+        (1.0-t)*Color::new(1.0,1.0,1.0) + t*Color::new(0.7, 0.3, 1.0)
+    }  
 }
 
 // color ray_color(const ray& r) {
@@ -40,7 +60,7 @@ fn main() -> io::Result<()> {
         let mut i = 0;
         while i < IMAGE_WIDTH {
             let u = i as f64 / (IMAGE_WIDTH - 1) as f64;
-            let v = j as f64 / (IMAGE_WIDTH - 1) as f64;
+            let v = j as f64 / (IMAGE_HEIGHT - 1) as f64;
             let r = vectors::ray::Ray::new(origin, lower_left_corner + u*horizontal + v*vertical - origin);
             let pixel_color = ray_color(r);
             vectors::color::write_color(io::stdout(), pixel_color)?;
