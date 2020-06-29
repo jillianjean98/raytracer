@@ -162,11 +162,11 @@ pub mod vec3 {
 }
 
 pub mod color {
-    use crate::vectors::vec3::vec3::Vec3;
+    use crate::utils::vec3::vec3::Vec3;
     pub type Color = Vec3;
 }
 
 pub mod point3 {
-    use crate::vectors::vec3::vec3::Vec3;
+    use crate::utils::vec3::vec3::Vec3;
     pub type Point3 = Vec3;
 }
