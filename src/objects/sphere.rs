@@ -4,17 +4,21 @@ pub mod sphere {
     use crate::objects::hittable::Hittable;
     use crate::utils;
     use crate::utils::ray::Ray;
+    use crate::objects::material::Material;
+    use std::rc::Rc;
 
     pub struct Sphere {
         center: utils::vec3::point3::Point3,
-        radius: f64
+        radius: f64,
+        material: Rc<dyn Material>
     }
 
     impl Sphere {
-        pub fn new(center: utils::vec3::point3::Point3, radius: f64) -> Sphere {
+        pub fn new(center: utils::vec3::point3::Point3, radius: f64, material: Rc<dyn Material>) -> Sphere {
             Sphere {
                 center,
-                radius
+                radius,
+                material: material
             }
         }
     }
@@ -34,6 +38,7 @@ pub mod sphere {
                     rec.p = r.at(rec.t);
                     rec.normal = (rec.p - self.center) / self.radius;
                     rec.set_face_normal(r, rec.normal);
+                    rec.material = self.material.clone();
                     true
                 } else {
                     temp = (-half_b + root)/a;
@@ -42,6 +47,7 @@ pub mod sphere {
                         rec.p = r.at(rec.t);
                         rec.normal = (rec.p - self.center) / self.radius;
                         rec.set_face_normal(r, rec.normal);
+                        rec.material = self.material.clone();
                         true
                     } else {
                         false

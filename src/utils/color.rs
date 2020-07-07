@@ -13,9 +13,9 @@ pub fn write_color(mut output_writer: impl Write, pixel_color: Color, samples_pe
     let b = pixel_color.z() * scale;
     
     output_writer.write_fmt(format_args!("{} {} {}\n", 
-        (256.0 * utils::clamp(r, 0.0, 0.999)) as i32,
-        (256.0 * utils::clamp(g, 0.0, 0.999)) as i32,
-        (256.0 * utils::clamp(b, 0.0, 0.999)) as i32))?;
+        (256.0 * utils::clamp(r.sqrt(), 0.0, 0.999)) as i32,
+        (256.0 * utils::clamp(g.sqrt(), 0.0, 0.999)) as i32,
+        (256.0 * utils::clamp(b.sqrt(), 0.0, 0.999)) as i32))?;
     Ok(())
 }
 

@@ -2,6 +2,9 @@ pub mod vec3 {
 
     use std::io::{self, Write};
     use std::ops::{*};
+    use std::f64::consts::PI;
+    extern crate rand;
+    use rand::Rng;
 
     #[derive(Copy, Clone)]
     pub struct Vec3 {
@@ -159,7 +162,20 @@ pub mod vec3 {
         let l = v.length();
         v / l
     }
+
+    pub fn random_unit_vector() -> Vec3 {
+        let a = rand::thread_rng().gen_range(0.0, 2.0*PI);
+        let z = rand::thread_rng().gen_range(-1.0, 1.0);
+        let r = (1.0 - z*z) as f64;
+        Vec3::new(r.sqrt()*a.cos(), r*a.sin(), z)
+    }
+
+    pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
+        v - 2.0*dot(v,n)*n
+    }
 }
+
+
 
 pub mod color {
     use crate::utils::vec3::vec3::Vec3;

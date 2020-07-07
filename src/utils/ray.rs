@@ -15,6 +15,13 @@ impl Ray {
         }
     }
 
+    pub fn new_default() -> Ray {
+        Ray {
+            origin: Point3::new(0.0,0.0,0.0), 
+            direction: Vec3::new(0.0,0.0,0.0)
+        }
+    }
+
     pub fn at(&self, t: f64) -> Point3 {
         self.origin + t*self.direction
     }

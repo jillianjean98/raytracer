@@ -9,6 +9,8 @@ use utils::ray::Ray;
 use objects::sphere::sphere::Sphere;
 use objects::hittable_list::hittable_list::HittableList;
 use objects::hittable::Hittable;
+use std::rc::Rc;
+use crate::objects::material;
 
 extern crate rand;
 use rand::Rng;
@@ -36,17 +38,36 @@ use rand::Rng;
 //     rng.gen_range(min, max)
 // }
 
-fn ray_color(r: Ray, world: &HittableList) -> Color {
-    let sph = Sphere::new(Point3::new(0.0,0.5,-1.0), 0.3);
-    //let mut t = hit_sphere(Point3::new(0.0,0.0,-1.0), 0.5, r);
-    let mut hr = objects::hittable::HitRecord::new_default();
-    if world.hit(r, 0.0, INFINITY, &mut hr) {
-        let n = utils::vec3::vec3::unit_vector(hr.p - Vec3::new(0.0,0.0,-1.0));
-        0.5*(hr.normal + Color::new(1.0, 1.0, 1.0))
+fn ray_color(r: Ray, world: &HittableList, depth: i32) -> Color {
+    if depth <= 0 {
+        Color::new(0.0,0.0,0.0)
     } else {
-        let unit_direction = utils::vec3::vec3::unit_vector(r.direction);
-        let t = 0.5*(unit_direction.y() + 1.0);
-        (1.0-t)*Color::new(1.0,1.0,1.0) + t*Color::new(0.5, 0.7, 1.0)
+        //let sph = Sphere::new(Point3::new(0.0,0.5,-1.0), 0.3, Rc::new(material::Lambertian::new(Color::new(0.0,0.0,0.0))));
+        //let mut t = hit_sphere(Point3::new(0.0,0.0,-1.0), 0.5, r);
+        let mut hr = objects::hittable::HitRecord::new_default();
+        // if (world.hit(r, 0.001, infinity, rec)) {
+        //     ray scattered;
+        //     color attenuation;
+        //     if (rec.mat_ptr->scatter(r, rec, attenuation, scattered))
+        //         return attenuation * ray_color(scattered, world, depth-1);
+        //     return color(0,0,0);
+        // }
+        if world.hit(r, 0.0001, INFINITY, &mut hr) {
+            let mut scattered = Ray::new_default();
+            let mut attenuation = Color::new(0.0,0.0,0.0);
+            if hr.material.scatter(&r, &hr, &mut attenuation, &mut scattered) {
+                attenuation * ray_color(scattered, world, depth - 1)
+            } else {
+                Color::new(0.0,0.0,0.0)
+            }
+            // let target = hr.p + hr.normal + utils::vec3::vec3::random_unit_vector();
+            // //let n = utils::vec3::vec3::unit_vector(hr.p - Vec3::new(0.0,0.0,-1.0));
+            // 0.5*ray_color(Ray::new(hr.p, target-hr.p), world, depth - 1)
+        } else {
+            let unit_direction = utils::vec3::vec3::unit_vector(r.direction);
+            let t = 0.5*(unit_direction.y() + 1.0);
+            (1.0-t)*Color::new(1.0,1.0,1.0) + t*Color::new(0.5, 0.7, 1.0)
+        }
     }
     
     // if t > 0.0 {
@@ -70,22 +91,25 @@ fn main() -> io::Result<()> {
     const IMAGE_WIDTH : i32 = 384;
     const IMAGE_HEIGHT : i32 = (IMAGE_WIDTH as f64/ASPECT_RATIO) as i32;
     const SAMPLES_PER_PIXEL: i32 = 100;
+    const MAX_DEPTH: i32 = 50;
     print!("P3\n{} {}\n255\n", IMAGE_WIDTH, IMAGE_HEIGHT);
 
     let viewport_height = 2.0;
     let viewport_width = ASPECT_RATIO * viewport_height;
     let focal_length = 1.0;
-    
-    let origin = Point3::new(0.0,0.0,0.0);
-    let horizontal = Vec3::new(viewport_width, 0.0, 0.0);
-    let vertical = Vec3::new(0.0, viewport_height, 0.0);
-    let lower_left_corner = origin - horizontal/2.0 - vertical/2.0 - Vec3::new(0.0, 0.0, focal_length);
+    // let origin = Point3::new(0.0,0.0,0.0);
+    // let horizontal = Vec3::new(viewport_width, 0.0, 0.0);
+    //let vertical = Vec3::new(0.0, viewport_height, 0.0);
+    //let lower_left_corner = origin - horizontal/2.0 - vertical/2.0 - Vec3::new(0.0, 0.0, focal_length);
     // auto horizontal = vec3(viewport_width, 0, 0);
     // auto vertical = vec3(0, viewport_height, 0);
     // auto lower_left_corner = origin - horizontal/2 - vertical/2 - vec3(0, 0, focal_length);
     let mut world = HittableList::new();
-    world.add(Box::new(Sphere::new(Point3::new(0.0,0.0,-1.0), 0.5)));
-    world.add(Box::new(Sphere::new(Point3::new(0.0,-100.5,-1.0), 100.0)));
+    world.add(Box::new(Sphere::new(Point3::new(0.0,0.0,-1.0), 0.5, Rc::new(material::Lambertian::new(Color::new(0.7, 0.3, 0.3))))));
+    world.add(Box::new(Sphere::new(Point3::new(0.0,-100.5,-1.0), 100.0, Rc::new(material::Lambertian::new(Color::new(0.8,0.8,0.0))))));
+
+    world.add(Box::new(Sphere::new(Point3::new(1.0,0.0,-1.0), 0.5, Rc::new(material::Metal::new(Color::new(0.8, 0.6, 0.2))))));
+    world.add(Box::new(Sphere::new(Point3::new(-1.0,0.0,-1.0), 0.5, Rc::new(material::Metal::new(Color::new(0.8,0.8,0.8))))));
 
     let cam = utils::camera::camera::Camera::new();
 
@@ -101,7 +125,7 @@ fn main() -> io::Result<()> {
                 let u = (i as f64 + rand::thread_rng().gen_range(0.0, 1.0))/ (IMAGE_WIDTH - 1) as f64;
                 let v = (j as f64 + rand::thread_rng().gen_range(0.0, 1.0))/ (IMAGE_HEIGHT - 1) as f64;
                 let r = cam.get_ray(u, v);
-                pixel_color += ray_color(r, &world);
+                pixel_color += ray_color(r, &world, MAX_DEPTH);
                 s += 1;
             }
             utils::color::write_color(io::stdout(), pixel_color, SAMPLES_PER_PIXEL)?;
